@@ -1,16 +1,17 @@
 import { draftMode, cookies } from "next/headers";
+import { json } from "stream/consumers";
 
 export async function fetchGraphQL<T = any>(
   query: string,
   variables?: { [key: string]: any },
   headers?: { [key: string]: string },
 ): Promise<T> {
-  const { isEnabled: preview } = draftMode();
+  const { isEnabled: preview } = await draftMode();
 
   try {
     let authHeader = "";
     if (preview) {
-      const auth = cookies().get("wp_jwt")?.value;
+      const auth = (await cookies()).get("wp_jwt")?.value;
       if (auth) {
         authHeader = `Bearer ${auth}`;
       }
@@ -49,7 +50,7 @@ export async function fetchGraphQL<T = any>(
     const data = await response.json();
 
     if (data.errors) {
-      console.error("GraphQL Errors:", data.errors);
+      console.log("GraphQL Errors:", data.errors);
       throw new Error("Error executing GraphQL query");
     }
 
